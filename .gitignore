@@ -47,4 +47,19 @@ checkpoints/
 
 # Large raw datasets: keep directory placeholders, never dataset contents
 /data/raw/*
+
+
+# Large datasets
+dataset/raw/*
+dataset/processed/*
+
+# Keep directory placeholders
+!dataset/raw/.gitkeep
+!dataset/processed/.gitkeep
+
+# Keep small sample datasets
+!dataset/sample/
+!dataset/sample/**
+
+# Existing data directory placeholder
 !/data/raw/.gitkeep
