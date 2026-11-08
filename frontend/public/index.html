@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bug Developer Recommendation</title>
+  <style>
+    body { max-width: 900px; margin: 3rem auto; padding: 0 1rem; font: 16px/1.5 system-ui, sans-serif; color: #182230; }
+    h1 { color: #174ea6; } form, .card { border: 1px solid #d5dce5; border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+    label { display: block; margin: .8rem 0 .25rem; font-weight: 600; } input, textarea { box-sizing: border-box; width: 100%; padding: .65rem; }
+    button { margin-top: 1rem; padding: .65rem 1rem; background: #174ea6; color: white; border: 0; border-radius: 6px; cursor: pointer; }
+    .muted { color: #586579; } pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <h1>Bug Developer Recommendation</h1>
+  <p class="muted">Enter a bug report to request ranked developer recommendations from the trained model.</p>
+  <form id="bug-form">
+    <label for="bug_id">Bug ID</label><input id="bug_id" value="new-bug">
+    <label for="title">Title</label><input id="title" required>
+    <label for="description">Description</label><textarea id="description" rows="5"></textarea>
+    <label for="product">Product</label><input id="product">
+    <label for="component">Component</label><input id="component">
+    <label for="severity">Severity</label><input id="severity">
+    <label for="priority">Priority</label><input id="priority">
+    <button type="submit">Recommend developers</button>
+  </form>
+  <section class="card"><h2>Recommendations</h2><pre id="result">Submit a report to see recommendations.</pre></section>
+  <script>
+    document.getElementById('bug-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const fields = ['bug_id', 'title', 'description', 'product', 'component', 'severity', 'priority'];
+      const body = Object.fromEntries(fields.map((id) => [id, document.getElementById(id).value]));
+      const output = document.getElementById('result');
+      output.textContent = 'Requesting recommendations…';
+      try {
+        const response = await fetch('/api/recommend', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        const data = await response.json();
+        output.textContent = JSON.stringify(data, null, 2);
+      } catch (error) { output.textContent = String(error); }
+    });
+  </script>
+</body>
+</html>

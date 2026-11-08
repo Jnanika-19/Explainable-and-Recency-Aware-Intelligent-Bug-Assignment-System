@@ -44,6 +44,9 @@ dist/
 *.ckpt
 mlruns/
 checkpoints/
+*.sqlite
+*.sqlite3
+*.db
 
 # Large raw datasets: keep directory placeholders, never dataset contents
 /data/raw/*
