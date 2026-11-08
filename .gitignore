@@ -30,6 +30,8 @@ ENV/
 build/
 dist/
 *.egg-info/
+node_modules/
+data/*.db
 
 # Model artifacts and experiment output
 *.pkl
