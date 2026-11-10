@@ -13,7 +13,10 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from backend.services.recommendations import recommend_demo
+from backend.services.recommendations import (
+    recommendation_readiness,
+    recommend_for_bug,
+)
 from database import repository
 
 
@@ -57,6 +60,10 @@ class AssignmentInput(BaseModel):
     status: Literal["ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"] = "ASSIGNED"
 
 
+class BugStatusInput(BaseModel):
+    status: Literal["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"]
+
+
 class DeveloperInput(BaseModel):
     developer_id: str = Field(min_length=1, max_length=200)
     name: str = Field(min_length=1, max_length=200)
@@ -75,15 +82,38 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PATCH"],
     allow_headers=["*"],
 )
 
 
-def save_recommendations(connection, bug_id: int, bug: dict, top_k: int = 3) -> dict:
-    result = recommend_demo(bug, top_k=top_k)
+def registered_developer_ids(connection) -> list[str]:
+    return [
+        row["developer_id"]
+        for row in connection.execute(
+            "SELECT developer_id FROM developers ORDER BY developer_id"
+        ).fetchall()
+    ]
+
+
+def save_recommendations(connection, bug_id: int, result: dict) -> None:
     created_at = utc_now()
     for item in result["recommendations"]:
+        evidence = {
+            **item["evidence"],
+            "ml_score": item["ml_score"],
+            "ml_score_type": item["ml_score_type"],
+            "component_relevance": item["component_relevance"],
+            "similar_bug_experience_score": item[
+                "similar_bug_experience_score"
+            ],
+            "cold_start": item["cold_start"],
+            "supporting_evidence": item["supporting_evidence"],
+            "model_interpretation": item["model_interpretation"],
+            "model_contribution": item["model_contribution"],
+            "assignment_score": item["assignment_score"],
+            "assignment_status": item["assignment_status"],
+        }
         connection.execute(
             """INSERT INTO recommendations
                (bug_id,developer_id,rank,score,expertise_score,recency_score,mode,
@@ -93,21 +123,27 @@ def save_recommendations(connection, bug_id: int, bug: dict, top_k: int = 3) -> 
                 bug_id,
                 item["developer_id"],
                 item["rank"],
-                item["score"],
+                None,
                 item["expertise_score"],
                 item["recency_score"],
                 result["mode"],
                 item["explanation"],
-                json.dumps(item["evidence"]),
+                json.dumps(evidence, ensure_ascii=False),
                 created_at,
             ),
         )
-    return result
 
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "recommendation_mode": "demo"}
+    readiness = recommendation_readiness()
+    return {
+        "status": "ok",
+        "recommendation_mode": "ml" if readiness["available"] else "unavailable",
+        "model_available": readiness["available"],
+        "recommendation_detail": readiness["detail"],
+        "assignment_scoring_available": False,
+    }
 
 
 @app.post("/api/bugs", status_code=201)
@@ -120,6 +156,9 @@ def submit_bug(request: BugInput):
     created_at = parse_timestamp(payload.pop("submission_date"))
     payload.update({"title": title, "component": component, "created_at": created_at})
     try:
+        with repository.connect() as connection:
+            candidates = registered_developer_ids(connection)
+        recommendations = recommend_for_bug(payload, candidates=candidates)
         with repository.connect() as connection:
             cursor = connection.execute(
                 """INSERT INTO bugs
@@ -137,10 +176,14 @@ def submit_bug(request: BugInput):
                 ),
             )
             bug_id = int(cursor.lastrowid)
-            recommendations = save_recommendations(connection, bug_id, payload)
-    except Exception:
-        logger.exception("Could not save bug report")
-        raise
+            save_recommendations(connection, bug_id, recommendations)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except sqlite3.Error as error:
+        logger.exception("Could not save bug report or recommendations")
+        raise HTTPException(status_code=503, detail="Database is unavailable") from error
     return {
         **recommendations,
         "bug": {"bug_id": bug_id, **payload, "status": "OPEN"},
@@ -200,6 +243,23 @@ def get_bug(bug_id: int):
     for row in recommendations:
         item = dict(row)
         item["evidence"] = json.loads(item.pop("evidence_json"))
+        item.update(
+            {
+                key: item["evidence"].get(key)
+                for key in (
+                    "ml_score",
+                    "ml_score_type",
+                    "component_relevance",
+                    "similar_bug_experience_score",
+                    "cold_start",
+                    "supporting_evidence",
+                    "model_interpretation",
+                    "model_contribution",
+                    "assignment_score",
+                    "assignment_status",
+                )
+            }
+        )
         result.append(item)
     return {
         "bug": dict(bug),
@@ -208,10 +268,55 @@ def get_bug(bug_id: int):
     }
 
 
+@app.patch("/api/bugs/{bug_id}")
+def update_bug_status(bug_id: int, request: BugStatusInput):
+    with repository.connect() as connection:
+        bug = connection.execute(
+            "SELECT assigned_developer_id FROM bugs WHERE bug_id=?",
+            (bug_id,),
+        ).fetchone()
+        if bug is None:
+            raise HTTPException(status_code=404, detail="Bug report not found")
+        if request.status in {"ASSIGNED", "IN_PROGRESS"} and not bug["assigned_developer_id"]:
+            raise HTTPException(
+                status_code=409,
+                detail="Assign the bug to a developer before setting this status.",
+            )
+        connection.execute(
+            "UPDATE bugs SET status=? WHERE bug_id=?",
+            (request.status, bug_id),
+        )
+        connection.execute(
+            """UPDATE assignments SET status=?
+               WHERE bug_id=? AND status NOT IN ('RESOLVED','CLOSED')""",
+            (request.status, bug_id),
+        )
+        row = connection.execute(
+            "SELECT * FROM bugs WHERE bug_id=?",
+            (bug_id,),
+        ).fetchone()
+    return {"bug": dict(row)}
+
+
 @app.post("/api/recommendations")
 def recommend(request: RecommendationInput):
     payload = request.model_dump() if hasattr(request, "model_dump") else request.dict()
-    return recommend_demo(payload, top_k=payload["top_k"])
+    payload["created_at"] = parse_timestamp(payload.pop("submission_date"))
+    try:
+        with repository.connect() as connection:
+            candidates = registered_developer_ids(connection)
+        return recommend_for_bug(
+            payload,
+            top_k=payload["top_k"],
+            candidates=candidates,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except sqlite3.Error as error:
+        logger.exception("Could not read developer candidates")
+        raise HTTPException(status_code=503, detail="Database is unavailable") from error
 
 
 @app.get("/api/developers")
@@ -226,6 +331,24 @@ def list_developers(search: str = "", limit: int = Query(default=100, ge=1, le=5
                WHERE (?='' OR d.developer_id LIKE ? OR d.name LIKE ?)
                GROUP BY d.developer_id ORDER BY d.name LIMIT ?""",
             (search.strip(), f"%{search.strip()}%", f"%{search.strip()}%", limit),
+        ).fetchall()
+    return {"items": [dict(row) for row in rows]}
+
+
+@app.get("/api/workloads")
+def developer_workloads():
+    with repository.connect() as connection:
+        rows = connection.execute(
+            """SELECT d.developer_id,d.name,
+                      COUNT(CASE WHEN UPPER(a.status) IN ('ASSIGNED','IN_PROGRESS')
+                                 THEN 1 END) AS active_assignments,
+                      COUNT(CASE WHEN UPPER(a.status)='ASSIGNED' THEN 1 END) AS assigned,
+                      COUNT(CASE WHEN UPPER(a.status)='IN_PROGRESS' THEN 1 END) AS in_progress,
+                      COUNT(CASE WHEN UPPER(a.status) IN ('RESOLVED','CLOSED')
+                                 THEN 1 END) AS completed,
+                      MAX(a.assignment_date) AS last_assignment_at
+               FROM developers d LEFT JOIN assignments a USING(developer_id)
+               GROUP BY d.developer_id ORDER BY active_assignments,d.name"""
         ).fetchall()
     return {"items": [dict(row) for row in rows]}
 
@@ -384,4 +507,48 @@ def dashboard_stats():
         "assigned_bugs": bugs["assigned"] or 0,
         "total_developers": developers,
         "recent_assignments": [dict(row) for row in recent],
+    }
+
+
+@app.get("/api/dashboard/analytics")
+def dashboard_analytics():
+    with repository.connect() as connection:
+        priorities = connection.execute(
+            """SELECT COALESCE(NULLIF(priority,''),'unknown') AS label,COUNT(*) AS count
+               FROM bugs GROUP BY label ORDER BY count DESC,label"""
+        ).fetchall()
+        severities = connection.execute(
+            """SELECT COALESCE(NULLIF(severity,''),'unknown') AS label,COUNT(*) AS count
+               FROM bugs GROUP BY label ORDER BY count DESC,label"""
+        ).fetchall()
+        submissions = connection.execute(
+            """SELECT substr(created_at,1,7) AS month,COUNT(*) AS count
+               FROM bugs GROUP BY month ORDER BY month DESC LIMIT 12"""
+        ).fetchall()
+        assignments = connection.execute(
+            """SELECT substr(assignment_date,1,7) AS month,COUNT(*) AS count
+               FROM assignments GROUP BY month ORDER BY month DESC LIMIT 12"""
+        ).fetchall()
+        performance = connection.execute(
+            """SELECT d.developer_id,d.name,
+                      COUNT(a.assignment_id) AS assigned_bugs,
+                      SUM(CASE WHEN UPPER(a.status) IN ('RESOLVED','CLOSED')
+                               THEN 1 ELSE 0 END) AS resolved_bugs
+               FROM developers d LEFT JOIN assignments a USING(developer_id)
+               GROUP BY d.developer_id ORDER BY resolved_bugs DESC,assigned_bugs DESC,d.name
+               LIMIT 10"""
+        ).fetchall()
+        priority_totals = connection.execute(
+            """SELECT SUM(CASE WHEN UPPER(priority) IN ('P1','P2','HIGH','CRITICAL','BLOCKER')
+                                    OR UPPER(severity) IN ('HIGH','CRITICAL','BLOCKER','MAJOR')
+                               THEN 1 ELSE 0 END) AS critical_high
+               FROM bugs"""
+        ).fetchone()
+    return {
+        "critical_high_bugs": priority_totals["critical_high"] or 0,
+        "priority_distribution": [dict(row) for row in priorities],
+        "severity_distribution": [dict(row) for row in severities],
+        "submission_trends": [dict(row) for row in reversed(submissions)],
+        "assignment_trends": [dict(row) for row in reversed(assignments)],
+        "developer_performance": [dict(row) for row in performance],
     }

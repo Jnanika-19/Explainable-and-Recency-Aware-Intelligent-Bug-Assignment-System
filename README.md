@@ -18,17 +18,19 @@ Assigning a bug to the right developer can require time-consuming manual review 
 
 ## Application status
 
-The Member 4 full-stack foundation is implemented: a responsive dashboard,
-bug submission and history, developer profiles, assignment history, and
-evidence-aware recommendation rendering. Recommendation output is currently a
-clearly labeled demo placeholder; it is not a real ML prediction.
+The Member 4 branch contains the React dashboard, FastAPI APIs, and SQLite
+storage for bugs, developers, recommendations, and assignments. Dashboard,
+workload, reports, bug status, and assignment history are database-backed.
+Developer selection and assignment are manual; the application does not
+silently convert an ML ranking into a final assignment.
 
-The following project capabilities still require integration or implementation:
-
-- Connect real bug preprocessing and similar-bug retrieval.
-- Connect Member 2's trained developer recommender and expertise profiles.
-- Connect Member 3's recency, workload, confidence, and scoring engine.
-- Populate developer profiles and assignment history from approved project data.
+The backend adapter follows Member 2's documented
+`recommend_developers(bug_report, top_k, candidates=...)` contract. The Member 2
+source modules and runtime model/history/vectorizer assets are not present on
+this branch, so recommendation endpoints report that integration as unavailable
+instead of returning fabricated results. Member 3's executable scoring module
+is also not present; final assignment scores remain unavailable. See
+`docs/member4/integration.md` for required runtime resources and API behavior.
 
 ## Technology Stack
 
@@ -119,10 +121,11 @@ Open the Vite URL (normally `http://localhost:5173`). API documentation is
 available at `http://127.0.0.1:8000/docs`. The SQLite database is stored at
 `data/bugwise.db` unless `BUGWISE_DB` specifies another location.
 
-The current recommendation adapter intentionally returns clearly labeled
-**DEMO ONLY** placeholders; it is not an ML prediction. Connect Member 2's
-recommender and Member 3's scoring engine before interpreting recommendations.
-See [Member 4 integration notes](docs/member4/integration.md).
+The API returns HTTP 503 for recommendation requests until Member 2's source
+and model resources are installed. Bug submission is not stored when
+recommendation resources are unavailable. Health reports recommendation and
+assignment-scoring readiness. Manual assignment endpoints remain available
+when developer and bug records exist.
 
 Run checks:
 

@@ -15,8 +15,11 @@ const pages = [
   ['new-bug', 'New bug report', '＋'],
   ['bugs', 'Bug reports', '▤'],
   ['developers', 'Developers', '♙'],
+  ['workload', 'Developer workload', '◫'],
   ['assignments', 'Assignment history', '◷'],
+  ['assignment-results', 'Assignment results', '↗'],
   ['explainability', 'Explainability', '✧'],
+  ['analytics', 'Reports & analytics', '▥'],
 ]
 
 export default function App() {
@@ -29,6 +32,7 @@ export default function App() {
   const [filter, setFilter] = useState('')
   const [sortOrder, setSortOrder] = useState('newest')
   const [refresh, setRefresh] = useState(0)
+  const [notice, setNotice] = useState('')
 
   const load = useCallback(async () => {
     if (page === 'new-bug') return
@@ -36,7 +40,14 @@ export default function App() {
     setError('')
     try {
       let path = ''
-      if (page === 'dashboard') path = '/dashboard/stats'
+      if (page === 'dashboard') {
+        const [stats, analytics] = await Promise.all([
+          api('/dashboard/stats'),
+          api('/dashboard/analytics'),
+        ])
+        setData({ ...stats, analytics })
+        return
+      }
       if (page === 'bugs') {
         const params = new URLSearchParams()
         if (search) params.set('search', search)
@@ -48,6 +59,7 @@ export default function App() {
       if (page === 'bug-detail') path = `/bugs/${selectedId}`
       if (page === 'developers') path = `/developers?search=${encodeURIComponent(search)}`
       if (page === 'developer-detail') path = `/developers/${encodeURIComponent(selectedId)}`
+      if (page === 'workload') path = '/workloads'
       if (page === 'assignments') {
         const params = new URLSearchParams()
         if (search) params.set('search', search)
@@ -55,6 +67,13 @@ export default function App() {
         params.set('sort', sortOrder === 'developer' ? 'developer_name' : sortOrder === 'title' ? 'bug_title' : 'assignment_date')
         params.set('order', sortOrder === 'oldest' || sortOrder === 'title' || sortOrder === 'developer' ? 'asc' : 'desc')
         path = `/assignments?${params}`
+      }
+      if (page === 'assignment-results') path = '/assignments?limit=100'
+      if (page === 'analytics') path = '/dashboard/analytics'
+      if (page === 'explainability') {
+        const bugs = await api('/bugs?limit=1')
+        setData(bugs.items?.length ? await api(`/bugs/${bugs.items[0].bug_id}`) : { recommendations: [] })
+        return
       }
       if (path) setData(await api(path))
     } catch (requestError) {
@@ -72,6 +91,7 @@ export default function App() {
     setSearch('')
     setFilter('')
     setSortOrder('newest')
+    setNotice('')
     setPage(next)
   }
 
@@ -86,6 +106,41 @@ export default function App() {
       setSelectedId(result.bug.bug_id)
       setData(result)
       setPage('bug-detail')
+      setRefresh((value) => value + 1)
+      setNotice('Bug saved and recommendations generated.')
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function assignDeveloper(bugId, developerId) {
+    setLoading(true)
+    setError('')
+    setNotice('')
+    try {
+      await api('/assignments', {
+        method: 'POST',
+        body: JSON.stringify({ bug_id: bugId, developer_id: developerId }),
+      })
+      setNotice(`Developer ${developerId} was manually assigned. No automatic workload policy was applied.`)
+      setRefresh((value) => value + 1)
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function updateBugStatus(bugId, status) {
+    setLoading(true)
+    setError('')
+    try {
+      await api(`/bugs/${bugId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      })
       setRefresh((value) => value + 1)
     } catch (requestError) {
       setError(requestError.message)
@@ -110,15 +165,19 @@ export default function App() {
         <header className="topbar"><span>BugWise <i>/</i> {page.replace('-', ' ')}</span><span className="avatar">BW</span></header>
         <div className="content">
           {error && <div className="alert" role="alert"><b>Request failed.</b> {error}</div>}
+          {notice && <div className="success" role="status">{notice}</div>}
           {loading && <div className="loading" role="status">Loading…</div>}
           {page === 'dashboard' && <Dashboard data={data} navigate={navigate} />}
           {page === 'new-bug' && <BugForm onSubmit={submitBug} loading={loading} />}
           {page === 'bugs' && <BugList data={data} navigate={navigate} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} sortOrder={sortOrder} setSortOrder={setSortOrder} />}
-          {page === 'bug-detail' && <BugDetail data={data} />}
+          {page === 'bug-detail' && <BugDetail data={data} onAssign={assignDeveloper} onStatusChange={updateBugStatus} />}
           {page === 'developers' && <DeveloperList data={data} navigate={navigate} search={search} setSearch={setSearch} />}
           {page === 'developer-detail' && <DeveloperDetail data={data} />}
           {page === 'assignments' && <AssignmentList data={data} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} sortOrder={sortOrder} setSortOrder={setSortOrder} />}
+          {page === 'workload' && <WorkloadPage data={data} />}
+          {page === 'assignment-results' && <AssignmentResults data={data} />}
           {page === 'explainability' && <Explainability data={data} />}
+          {page === 'analytics' && <AnalyticsPage data={data} />}
         </div>
       </main>
     </div>
@@ -131,6 +190,7 @@ function Header({ eyebrow, title, description, action }) {
 
 function Dashboard({ data, navigate }) {
   const stats = data || {}
+  const analytics = stats.analytics || {}
   return <>
     <Header eyebrow="OVERVIEW" title="Assignment dashboard" description="Bug triage activity, developer coverage, and assignment history."
       action={<button className="button primary" onClick={() => navigate('new-bug')}>＋ New bug report</button>} />
@@ -140,7 +200,12 @@ function Dashboard({ data, navigate }) {
       <Stat label="Resolved bugs" value={stats.resolved_bugs ?? '—'} icon="✓" />
       <Stat label="Assigned bugs" value={stats.assigned_bugs ?? '—'} icon="↗" />
       <Stat label="Developers" value={stats.total_developers ?? '—'} icon="♙" />
+      <Stat label="Critical / high" value={analytics.critical_high_bugs ?? '—'} icon="!" />
     </div>
+    <section className="analytics-grid">
+      <DistributionPanel title="Priority distribution" rows={analytics.priority_distribution} />
+      <DistributionPanel title="Severity distribution" rows={analytics.severity_distribution} />
+    </section>
     <section className="panel">
       <div className="panel-title"><div><h2>Recent assignments</h2><p>Latest recorded developer assignments.</p></div>
         <button className="button secondary" onClick={() => navigate('assignments')}>View history →</button></div>
@@ -168,7 +233,7 @@ function BugForm({ onSubmit, loading }) {
         <Field label="Submission date" name="submission_date" type="datetime-local" />
         <Field label="Description" name="description" textarea placeholder="Steps to reproduce, expected and actual behavior…" wide />
       </div>
-      <div className="form-footer"><span>Recommendations remain marked as demo-only until the ML and scoring modules are integrated.</span>
+      <div className="form-footer"><span>Recommendations require registered developers and the Member 2 model assets. Final assignment scoring is pending Member 3 integration.</span>
         <button className="button primary" disabled={loading}>{loading ? 'Submitting…' : 'Submit and recommend →'}</button></div>
     </form>
   </>
@@ -203,34 +268,41 @@ function BugList({ data, navigate, search, setSearch, filter, setFilter, sortOrd
   </>
 }
 
-function BugDetail({ data }) {
+function BugDetail({ data, onAssign, onStatusChange }) {
   if (!data?.bug) return <Empty title="Bug report unavailable" text="Return to the report list and choose a report." />
   const bug = data.bug
   const demo = data.recommendations?.some((item) => item.mode === 'demo')
   return <>
     <Header eyebrow={`BUG #${bug.bug_id}`} title={bug.title} description={`${bug.component} · ${bug.severity} · ${bug.priority}`} />
     <section className="panel detail-panel"><h2>Bug description</h2><p>{bug.description || 'No description provided.'}</p>
-      <div className="detail-meta"><span>Status <b>{bug.status}</b></span><span>Language <b>{bug.programming_language || 'Not specified'}</b></span><span>Submitted <b>{date(bug.created_at)}</b></span></div></section>
+      <div className="detail-meta"><span>Status <select aria-label="Bug status" value={bug.status} onChange={(event) => onStatusChange(bug.bug_id, event.target.value)}>
+        {['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].map((status) => <option key={status}>{status}</option>)}
+      </select></span><span>Language <b>{bug.programming_language || 'Not specified'}</b></span><span>Submitted <b>{date(bug.created_at)}</b></span></div></section>
     <section className="recommendations">
       <div className="section-heading"><h2>Top developer recommendations</h2>{demo && <Badge tone="warning">DEMO ONLY</Badge>}</div>
-      {demo && <div className="notice" role="note">These placeholders are not ML predictions or assignment advice. Connect Member 2 and Member 3 modules before operational use.</div>}
-      <div className="recommendation-grid">{(data.recommendations || []).map((item) => <RecommendationCard key={item.recommendation_id || item.developer_id} item={item} />)}</div>
+      {data.disclaimer && <div className="notice" role="note">{data.disclaimer}</div>}
+      <div className="recommendation-grid">{(data.recommendations || []).map((item) => <RecommendationCard key={item.recommendation_id || item.developer_id} item={item} onAssign={() => onAssign(bug.bug_id, item.developer_id)} />)}</div>
       {!data.recommendations?.length && <Empty title="No recommendations available" text="The recommendation service has not returned candidates." />}
     </section>
     {data.assignments?.length > 0 && <section className="panel"><h2>Assignment history</h2><AssignmentTable rows={data.assignments} /></section>}
   </>
 }
 
-function RecommendationCard({ item }) {
-  const demo = item.mode === 'demo'
+function RecommendationCard({ item, onAssign }) {
   return <article className="recommend-card">
-    <div className="recommend-head"><span className="rank">#{item.rank}</span>{demo && <Badge tone="warning">MOCK</Badge>}</div>
+    <div className="recommend-head"><span className="rank">#{item.rank}</span>{item.cold_start && <Badge tone="warning">COLD START</Badge>}</div>
     <h3>{item.developer_id}</h3>
-    <div className="score">Ranking score <b>{item.score == null ? 'Not calculated' : `${(item.score * 100).toFixed(1)}%`}</b></div>
-    <div className="evidence-grid"><span>Component expertise <b>{item.expertise_score == null ? 'Not calculated' : item.expertise_score}</b></span>
-      <span>Recent activity <b>{item.recency_score == null ? 'Not calculated' : item.recency_score}</b></span></div>
+    <div className="score">ML decision margin <b>{item.ml_score == null ? 'Not available' : Number(item.ml_score).toFixed(4)}</b></div>
+    <small className="muted">{item.ml_score_type || 'Assignment score is not calculated.'}</small>
+    <div className="evidence-grid"><span>Expertise <b>{item.expertise_score ?? 'Not available'}</b></span>
+      <span>Recency <b>{item.recency_score ?? 'Not available'}</b></span>
+      <span>Component relevance <b>{item.component_relevance ?? 'Not available'}</b></span>
+      <span>Similar bug experience <b>{item.similar_bug_experience_score ?? 'Not available'}</b></span></div>
     <h4>Why this developer?</h4><p>{item.explanation}</p>
-    {item.evidence && Object.keys(item.evidence).length > 0 && <ul className="evidence-list">{Object.entries(item.evidence).map(([key, value]) => <li key={key}>{key}: {String(value)}</li>)}</ul>}
+    {item.supporting_evidence?.length > 0 && <ul className="evidence-list">{item.supporting_evidence.map((entry, index) => <li key={index}>{entry}</li>)}</ul>}
+    {item.model_interpretation && <details><summary>Model interpretation</summary><p>{item.model_interpretation}</p></details>}
+    {item.evidence && Object.keys(item.evidence).length > 0 && <details><summary>Computed evidence</summary><ul className="evidence-list">{Object.entries(item.evidence).map(([key, value]) => <li key={key}>{key}: {String(value)}</li>)}</ul></details>}
+    {onAssign && <button className="button secondary assign-button" onClick={onAssign}>Manually assign</button>}
   </article>
 }
 
@@ -273,10 +345,56 @@ function Explainability({ data }) {
   const item = data?.recommendations?.[0]
   return <>
     <Header eyebrow="TRANSPARENCY" title="Explainability" description="Review evidence returned with recommendations; unsupported reasons are not inferred by the UI." />
-    {item?.mode === 'demo' && <div className="notice">Current recommendations are demo placeholders. No expertise, recency, or ranking score has been calculated.</div>}
+    {data?.disclaimer && <div className="notice">{data.disclaimer}</div>}
     {item ? <RecommendationCard item={item} /> : <section className="panel"><Empty title="No recommendation evidence selected" text="Open a bug report to inspect the explanation payload returned by the recommendation service." /></section>}
-    <section className="panel spaced"><h2>Integration status</h2><p className="muted">The API currently returns explicitly labeled demo placeholders. The Member 2 recommender and Member 3 scoring engine must provide numeric evidence and explanations before real ranking results are displayed.</p></section>
+    <section className="panel spaced"><h2>Evidence and policy are separate</h2><p className="muted">ML margins and historical evidence come from Member 2. Final assignment score, workload policy, and automatic assignment remain unavailable until Member 3's executable scoring interface is integrated.</p></section>
   </>
+}
+
+function WorkloadPage({ data }) {
+  const rows = data?.items || []
+  return <>
+    <Header eyebrow="CAPACITY" title="Developer workload" description="Counts are computed from assignment records in the application database." />
+    <section className="panel table-panel">{rows.length ? <div className="table-scroll"><table><thead><tr><th>Developer</th><th>Active assignments</th><th>Assigned</th><th>In progress</th><th>Completed</th><th>Last assignment</th></tr></thead><tbody>
+      {rows.map((row) => <tr key={row.developer_id}><td>{row.name}</td><td>{row.active_assignments}</td><td>{row.assigned}</td><td>{row.in_progress}</td><td>{row.completed}</td><td>{date(row.last_assignment_at)}</td></tr>)}
+    </tbody></table></div> : <Empty title="No workload records" text="Register developers and record assignments to see database-backed workload." />}</section>
+  </>
+}
+
+function AssignmentResults({ data }) {
+  const rows = data?.items || []
+  return <>
+    <Header eyebrow="DECISIONS" title="Assignment results" description="Only manually recorded assignments appear here; recommendations are not automatic assignments." />
+    <section className="panel table-panel">{rows.length ? <AssignmentTable rows={rows} /> : <Empty title="No assignment decisions" text="Select a developer and manually assign a bug from its detail page." />}</section>
+  </>
+}
+
+function AnalyticsPage({ data }) {
+  if (!data) return <Empty title="Analytics unavailable" text="Dashboard analytics could not be loaded." />
+  return <>
+    <Header eyebrow="REPORTS" title="Reports and analytics" description="Aggregates are calculated from bugs and assignments stored in SQLite." />
+    <section className="analytics-grid">
+      <DistributionPanel title="Priority distribution" rows={data.priority_distribution} />
+      <DistributionPanel title="Severity distribution" rows={data.severity_distribution} />
+      <DistributionPanel title="Bug submissions by month" rows={data.submission_trends} />
+      <DistributionPanel title="Assignments by month" rows={data.assignment_trends} />
+    </section>
+    <section className="panel table-panel"><div className="panel-title"><div><h2>Developer performance</h2><p>Counts reflect assignments recorded in this application, not model evaluation metrics.</p></div></div>
+      {data.developer_performance?.length ? <div className="table-scroll"><table><thead><tr><th>Developer</th><th>Assignments</th><th>Resolved</th></tr></thead><tbody>
+        {data.developer_performance.map((row) => <tr key={row.developer_id}><td>{row.name}</td><td>{row.assigned_bugs}</td><td>{row.resolved_bugs || 0}</td></tr>)}
+      </tbody></table></div> : <Empty title="No performance records" text="Recorded assignments will provide the basis for these counts." />}
+    </section>
+  </>
+}
+
+function DistributionPanel({ title, rows }) {
+  const items = rows || []
+  const maximum = Math.max(1, ...items.map((item) => Number(item.count) || 0))
+  return <section className="panel distribution-panel"><div className="panel-title"><div><h2>{title}</h2><p>Database records</p></div></div>
+    {items.length ? items.map((item) => <div className="bar-row" key={item.label || item.month}>
+      <span>{item.label || item.month}</span><div className="bar-track"><span style={{ width: `${(Number(item.count) / maximum) * 100}%` }} /></div><b>{item.count}</b>
+    </div>) : <Empty title="No records yet" text="Data will appear after reports or assignments are saved." />}
+  </section>
 }
 
 function Badge({ children, tone }) { return <span className={`badge ${tone || ''}`}>{children}</span> }
