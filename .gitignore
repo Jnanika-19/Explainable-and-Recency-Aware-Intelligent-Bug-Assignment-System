@@ -89,3 +89,5 @@ dataset/processed/*
 !dataset/processed/member1_dataset_files/
 dataset/processed/member1_dataset_files/*
 !dataset/processed/member1_dataset_files/README.md
+
+dataset/external/*
