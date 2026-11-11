@@ -97,13 +97,11 @@ Dependencies are listed for setup; they are not installed automatically by this 
 
 ## How to Run
 
-Application and model implementation steps are **upcoming**. There is not yet an application entry point or a trained model to run.
+The module interfaces and initial app shell are implemented. Training and measured recommendation quality still require a real dataset and a schema mapping.
 
-After implementation, the intended workflow is:
+1. Inspect the dataset headers and map actual source columns in `research/dataset_documentation/schema.json` (see `ml_model/README.md`).
+2. Run training and evaluation with `python -m ml_model.train_model --data data/processed/bugs.csv --schema research/dataset_documentation/schema.json`.
+3. Start the API and browser form with `uvicorn backend.api.main:app --reload`, then open `http://127.0.0.1:8000`.
+4. Run `pytest` after installing dependencies and adding/receiving the team's test cases.
 
-1. Place approved source data in `data/raw/` (large raw files are excluded from Git).
-2. Implement preprocessing, similarity retrieval, model training, and scoring modules.
-3. Add backend and frontend entry points and document their run commands here.
-4. Run the test suite with `pytest` once tests have been added.
-
-Until those implementation steps are complete, there is no project application command to launch.
+The repository currently contains no dataset or trained model, so recommendation requests return HTTP 503 until the training command succeeds. No results or accuracy claims are supplied in advance.

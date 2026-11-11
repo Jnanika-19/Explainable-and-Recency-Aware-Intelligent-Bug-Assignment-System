@@ -45,9 +45,14 @@ dist/
 mlruns/
 checkpoints/
 
-# Large raw datasets: keep directory placeholders, never dataset contents
-/data/raw/*
+# SQLite database files
+*.sqlite
+*.sqlite3
+*.db
 
+# Large raw datasets: keep directory placeholders
+/data/raw/*
+!/data/raw/.gitkeep
 
 # Large datasets
 dataset/raw/*
@@ -60,6 +65,3 @@ dataset/processed/*
 # Keep small sample datasets
 !dataset/sample/
 !dataset/sample/**
-
-# Existing data directory placeholder
-!/data/raw/.gitkeep

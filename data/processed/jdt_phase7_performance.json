@@ -1,0 +1,10 @@
+{
+  "api_queries": 331,
+  "candidate_roster_size": 79,
+  "total_api_seconds": 262.16928050131537,
+  "mean_seconds_per_query": 0.7920522069526144,
+  "median_seconds_per_query": 0.7850597999058664,
+  "p95_seconds_per_query": 0.8702771000098437,
+  "maximum_seconds_per_query": 1.3374372001271695,
+  "first_query_seconds_includes_cached_resource_load": 1.1284969002008438
+}
