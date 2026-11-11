@@ -1,0 +1,13 @@
+{
+  "fixture_only": true,
+  "note": "Unit-test request fixture; not a source dataset record or model evaluation example.",
+  "bug_report": {
+    "bug_id": "BUG-001",
+    "title": "Null pointer in editor",
+    "description": "Editor throws a null pointer on refresh",
+    "component": "Core",
+    "severity": "major",
+    "priority": "P1",
+    "prediction_timestamp": "2020-01-10T00:00:00Z"
+  }
+}
