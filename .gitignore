@@ -85,3 +85,7 @@ dataset/processed/*
 # Keep small sample datasets
 !dataset/sample/
 !dataset/sample/**
+# Allow dataset documentation, but keep processed data private
+!dataset/processed/member1_dataset_files/
+dataset/processed/member1_dataset_files/*
+!dataset/processed/member1_dataset_files/README.md
