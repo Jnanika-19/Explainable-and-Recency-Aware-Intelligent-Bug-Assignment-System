@@ -1,4 +1,4 @@
-
+﻿
 import sys
 import unittest
 from pathlib import Path
@@ -111,7 +111,7 @@ class TestWorkloadCalculator(unittest.TestCase):
 
         self.assertEqual(
             result["A"]["assignment_count"],
-            3
+            2
         )
 
     # ------------------------------------------

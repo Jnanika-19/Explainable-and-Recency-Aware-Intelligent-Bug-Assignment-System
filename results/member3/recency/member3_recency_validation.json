@@ -1,0 +1,145 @@
+{
+    "component": "Member 3 Recency",
+    "half_life_days": 1095,
+    "input_counts": {
+        "verified_training_assignments": 1298,
+        "test_bugs": 331,
+        "candidate_developers": 79,
+        "candidate_pairs": 26149
+    },
+    "temporal_policy": "Verified known-entry training assignments strictly before each test bug prediction timestamp.",
+    "target_bug_excluded": true,
+    "future_data_leakage_check": "passed",
+    "candidate_pair_coverage": true,
+    "member2_recency_comparison": {
+        "feature_compared": "days_since_last_activity",
+        "missingness_matches": true,
+        "maximum_absolute_difference_days": 4.814864951185882e-09,
+        "mean_absolute_difference_days": 2.30012438169984e-09,
+        "tolerance_days": 1e-06,
+        "values_match_within_tolerance": true
+    },
+    "ground_truth_coverage": {
+        "targets_in_roster": 143,
+        "targets_outside_roster": 188
+    },
+    "ranking_metrics": [
+        {
+            "method": "Member 3 Recency-only",
+            "total_test_bugs": 331,
+            "targets_in_candidate_roster": 143,
+            "targets_outside_candidate_roster": 188,
+            "top1_all_pct": 9.969788519637463,
+            "top3_all_pct": 10.876132930513595,
+            "top5_all_pct": 21.45015105740181,
+            "mrr_all": 0.15230985446242243,
+            "top1_seen_pct": 23.076923076923077,
+            "top3_seen_pct": 25.174825174825177,
+            "top5_seen_pct": 49.65034965034965,
+            "mrr_seen": 0.35254938340602676
+        },
+        {
+            "method": "Member 2 ML-only",
+            "total_test_bugs": 331,
+            "targets_in_candidate_roster": 143,
+            "targets_outside_candidate_roster": 188,
+            "top1_all_pct": 11.782477341389729,
+            "top3_all_pct": 19.939577039274926,
+            "top5_all_pct": 21.75226586102719,
+            "mrr_all": 0.18408961195432438,
+            "top1_seen_pct": 27.27272727272727,
+            "top3_seen_pct": 46.15384615384615,
+            "top5_seen_pct": 50.349650349650354,
+            "mrr_seen": 0.4261095213767928
+        }
+    ],
+    "double_counting_warning": "Member 2 already uses days_since_last_activity. Member 3 Recency score is a deterministic transformation of the same global elapsed-time signal. Do not simply add the Recency score to the raw ML margin.",
+    "component_recency_note": "component_recency_score is a separate component-specific feature and must not be confused with global Recency.",
+    "member2_validation_report": {
+        "dataset": "verified known_entry chronological test partition",
+        "model": "saved Phase 4 combined_linear_svm; no retraining",
+        "candidate_score_shape": [
+            331,
+            79
+        ],
+        "candidate_score_values_shape_excluding_bug_keys": [
+            331,
+            79
+        ],
+        "candidate_feature_rows": 26149,
+        "expected_candidate_feature_rows": 26149,
+        "ground_truth_rows": 331,
+        "candidate_roster_size": 79,
+        "seen_test_targets": 143,
+        "unseen_test_targets": 188,
+        "feature_columns": [
+            "historical_bug_count",
+            "historical_active_days",
+            "component_experience_count",
+            "component_experience_share",
+            "recent_activity_count_30d",
+            "recent_activity_count_90d",
+            "recent_activity_count_365d",
+            "recent_component_count_30d",
+            "recent_component_count_90d",
+            "recent_component_count_365d",
+            "days_since_last_activity",
+            "days_since_last_component",
+            "component_recency_score",
+            "similar_bug_count",
+            "similar_bug_similarity_sum",
+            "max_similar_bug_similarity",
+            "expertise_score",
+            "similarity_score"
+        ],
+        "numeric_model_input_columns": [
+            "historical_bug_count",
+            "historical_active_days",
+            "component_experience_count",
+            "component_experience_share",
+            "recent_activity_count_30d",
+            "recent_activity_count_90d",
+            "recent_activity_count_365d",
+            "recent_component_count_30d",
+            "recent_component_count_90d",
+            "recent_component_count_365d",
+            "days_since_last_activity",
+            "days_since_last_component",
+            "component_recency_score",
+            "similar_bug_count",
+            "similar_bug_similarity_sum",
+            "max_similar_bug_similarity",
+            "expertise_score",
+            "similarity_score",
+            "days_since_last_activity_missing",
+            "days_since_last_component_missing"
+        ],
+        "unique_bug_candidate_pairs": 26149,
+        "duplicate_bug_candidate_pairs": 0,
+        "all_candidate_scores_finite": true,
+        "all_bug_roster_pairs_present": true,
+        "ground_truth_isolated_from_features": "actual_developer_id is not present in feature CSV",
+        "history_policy": "verified training assignments strictly before each prediction timestamp",
+        "training_labels_precede_test_cutoff": true,
+        "test_ids_disjoint_from_training_ids": true,
+        "all_candidate_scores_recomputed_from_saved_model": true,
+        "saved_top5_model_scores_reproduced": true,
+        "saved_model_rankings_reproduced": true,
+        "score_comparison_absolute_tolerance": 1e-08,
+        "zip_entries": [
+            "member2_candidate_scores_331x79.csv",
+            "member2_candidate_features_331x79.csv",
+            "member2_ground_truth.csv",
+            "member2_candidate_roster.csv",
+            "member2_numeric_input_columns.json",
+            "member2_candidate_export_validation.json",
+            "member2_candidate_level_handoff.md",
+            "export_member2_candidate_predictions.py"
+        ]
+    },
+    "outputs": [
+        "results\\member3\\recency\\member3_recency_candidate_evaluation.csv",
+        "results\\member3\\recency\\member3_recency_ranking_metrics.csv",
+        "results\\member3\\recency\\member3_recency_validation.json"
+    ]
+}

@@ -65,3 +65,13 @@ dataset/processed/*
 # Keep small sample datasets
 !dataset/sample/
 !dataset/sample/**
+
+# Member 2 handoff package
+ml_model/exports/member3_handoff/
+
+# Local virtual environments and editor settings
+.venv313/
+.vscode/
+
+# Local backup files
+*.bak

@@ -1,0 +1,115 @@
+{
+  "source_counts": {
+    "primary_rows": 33246,
+    "profile_rows": 335,
+    "expertise_rows": 640
+  },
+  "source_reconciliation": {
+    "distinct_developers": 335,
+    "profile_rows": 335,
+    "expertise_rows": 640,
+    "profile_count_mismatches": 0,
+    "expertise_share_mismatches": 0
+  },
+  "source_integrity": {
+    "primary_duplicate_bug_ids": 0,
+    "primary_exact_duplicate_rows": 0,
+    "profile_duplicate_developer_ids": 0,
+    "expertise_duplicate_developer_component_rows": 0,
+    "developer_id_normalization": "trim and Unicode NFC; case preserved",
+    "distinct_developer_ids": 335,
+    "developer_id_casefold_collision": [
+      "dev_0196",
+      "dev_0196"
+    ]
+  },
+  "label_counts": {
+    "known_entry": 1651,
+    "provisional_exploratory_only": 31595
+  },
+  "missing_text_values": {
+    "known_entry_empty_titles": 0,
+    "known_entry_empty_descriptions": 4,
+    "provisional_empty_titles": 2,
+    "provisional_empty_descriptions": 211
+  },
+  "chronological_split": {
+    "cutoff_utc": "2010-04-09T07:54:03Z",
+    "requested_test_fraction": 0.2,
+    "training_rows": 1298,
+    "training_developer_classes": 79,
+    "test_rows": 331,
+    "test_rows_with_developer_seen_in_training": 143,
+    "test_rows_with_unseen_developer": 188,
+    "test_developer_classes_seen_in_training": 12,
+    "test_developer_classes_unseen_in_training": 48,
+    "excluded_pre_cutoff_rows_with_future_assignment_events": 22,
+    "training_label_events_before_cutoff": true,
+    "test_bug_creation_at_or_after_cutoff": true
+  },
+  "class_imbalance": {
+    "known_entry_classes": 131,
+    "known_entry_min_rows_per_developer": 1,
+    "known_entry_median_rows_per_developer": 3.0,
+    "known_entry_max_rows_per_developer": 231,
+    "known_entry_singleton_developers": 50,
+    "training_min_rows_per_developer": 1,
+    "training_median_rows_per_developer": 3.0,
+    "training_max_rows_per_developer": 231,
+    "training_singleton_developers": 26,
+    "known_entry_top_10_developers": [
+      {
+        "developer_id": "dev_0112",
+        "rows": 231
+      },
+      {
+        "developer_id": "dev_0213",
+        "rows": 134
+      },
+      {
+        "developer_id": "dev_0212",
+        "rows": 115
+      },
+      {
+        "developer_id": "dev_0240",
+        "rows": 108
+      },
+      {
+        "developer_id": "dev_0070",
+        "rows": 79
+      },
+      {
+        "developer_id": "dev_0183",
+        "rows": 77
+      },
+      {
+        "developer_id": "dev_0249",
+        "rows": 69
+      },
+      {
+        "developer_id": "dev_0152",
+        "rows": 66
+      },
+      {
+        "developer_id": "dev_0120",
+        "rows": 57
+      },
+      {
+        "developer_id": "dev_0248",
+        "rows": 39
+      }
+    ]
+  },
+  "temporal_expertise": {
+    "rows": 26149,
+    "candidate_developers": 79,
+    "timestamp_rule": "assignment_time < prediction created_at",
+    "used_as_baseline_model_input": false
+  },
+  "model_input_columns": [
+    "title",
+    "description"
+  ],
+  "original_csv_files_modified": false,
+  "provisional_rows_used_as_supervised_targets": 0
+}
