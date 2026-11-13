@@ -16,7 +16,7 @@ DATASET_PATH = (
     PROJECT_ROOT
     / "data"
     / "processed"
-    / "jdt_training_primary.csv"
+    / "jdt_known_entry_preprocessed.csv"
 )
 
 from scoring_engine.recency.recency_calculator import parse_timestamp
@@ -32,8 +32,8 @@ from scoring_engine.workload.workload_calculator import (
 
 def load_dataset(file_path):
     """
-    Load bug records and assignment events
-    from the primary JDT dataset.
+    Load verified known_entry records only.
+    Assignment activity uses the verified assignment_time.
     """
 
     bug_records = []
@@ -51,10 +51,10 @@ def load_dataset(file_path):
 
         required_columns = {
             "bug_id",
-            "developer_label",
-            "creation_time",
-            "label_event_time",
-            "label_event_type"
+            "developer_id",
+            "created_at",
+            "assignment_time",
+            "label_type"
         }
 
         missing_columns = (
@@ -68,28 +68,44 @@ def load_dataset(file_path):
 
         for row in reader:
 
+            if row["label_type"].strip() != "known_entry":
+                skipped_records += 1
+                continue
+
+            developer = (row["developer_id"] or "").strip()
+            bug_id = (row["bug_id"] or "").strip()
+
+            if not bug_id or not developer:
+                skipped_records += 1
+                continue
+
             try:
                 creation_timestamp = parse_timestamp(
-                    row["creation_time"]
+                    row["created_at"]
                 )
 
                 event_timestamp = parse_timestamp(
-                    row["label_event_time"]
+                    row["assignment_time"]
                 )
 
             except (ValueError, TypeError):
                 skipped_records += 1
                 continue
 
-            row["_creation_timestamp"] = creation_timestamp
+            normalized_row = dict(row)
+            normalized_row["creation_time"] = row["created_at"]
+            normalized_row["developer_label"] = developer
+            normalized_row["label_event_time"] = event_timestamp
+            normalized_row["label_event_type"] = "assignment_added"
+            normalized_row["_creation_timestamp"] = creation_timestamp
 
-            bug_records.append(row)
+            bug_records.append(normalized_row)
 
             assignment_events.append({
-                "bug_id": row["bug_id"],
-                "developer_label": row["developer_label"],
+                "bug_id": bug_id,
+                "developer_label": developer,
                 "label_event_time": event_timestamp,
-                "label_event_type": row["label_event_type"]
+                "label_event_type": "assignment_added"
             })
 
     bug_records.sort(
@@ -98,10 +114,6 @@ def load_dataset(file_path):
 
     return bug_records, assignment_events, skipped_records
 
-
-# ==================================================
-# 3. PERCENTILE CALCULATION
-# ==================================================
 
 def calculate_percentile(values, percentile):
     """
@@ -201,7 +213,7 @@ def get_historical_candidates(
         if not developer:
             continue
 
-        if event["label_event_time"] <= reference_date:
+        if event["label_event_time"] < reference_date:
             candidates.add(developer)
 
     return sorted(candidates)

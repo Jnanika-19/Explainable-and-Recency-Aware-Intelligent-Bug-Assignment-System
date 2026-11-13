@@ -1,0 +1,57 @@
+{
+    "component": "Member 3 Workload",
+    "dataset": "jdt_known_entry_preprocessed.csv",
+    "input_counts": {
+        "valid_bug_records": 1651,
+        "assignment_events": 1651,
+        "skipped_records": 0,
+        "prediction_points": 4
+    },
+    "workload_windows_days": [
+        30,
+        60,
+        90,
+        180,
+        365
+    ],
+    "expected_workload_rows": 20,
+    "actual_workload_rows": 20,
+    "expected_normalization_rows": 60,
+    "actual_normalization_rows": 60,
+    "window_candidate_count_validation": true,
+    "normalization_developer_pool_validation": true,
+    "target_bug_excluded": true,
+    "temporal_policy": "Workload is calculated from historical assignment events within each selected window, excluding the target bug and future events.",
+    "interpretation_limitation": "Assignment frequency is used as a workload proxy. The available event data does not establish the number of currently open bugs or actual developer availability.",
+    "prediction_points": [
+        {
+            "prediction_point": "25_PERCENT",
+            "target_bug_id": "29860",
+            "prediction_timestamp": "2003-01-21T03:34:00+00:00",
+            "eligible_developers": 24
+        },
+        {
+            "prediction_point": "MIDDLE",
+            "target_bug_id": "97323",
+            "prediction_timestamp": "2005-05-30T17:23:22+00:00",
+            "eligible_developers": 58
+        },
+        {
+            "prediction_point": "75_PERCENT",
+            "target_bug_id": "259247",
+            "prediction_timestamp": "2008-12-18T13:00:56+00:00",
+            "eligible_developers": 71
+        },
+        {
+            "prediction_point": "LATEST",
+            "target_bug_id": "578388",
+            "prediction_timestamp": "2022-01-26T10:11:49+00:00",
+            "eligible_developers": 129
+        }
+    ],
+    "outputs": [
+        "results\\member3\\workload\\member3_workload_window_evaluation.csv",
+        "results\\member3\\workload\\member3_workload_normalization_comparison.csv"
+    ],
+    "validation_passed": true
+}

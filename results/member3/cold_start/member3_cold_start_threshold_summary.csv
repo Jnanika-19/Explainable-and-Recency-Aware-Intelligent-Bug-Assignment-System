@@ -1,0 +1,13 @@
+﻿target_bug_id,prediction_timestamp_utc,target_component,history_threshold,fixed_roster_size,sufficient_history_count,sufficient_history_pct,limited_history_count,limited_history_pct,no_history_count,no_history_pct,limited_component_match_count,limited_no_component_match_count,limited_component_unavailable_count,limited_component_supported_count,limited_additional_evidence_required_count,external_evidence_required_count,actual_assignee,actual_assignee_in_fixed_roster,actual_assignee_history_count,actual_assignee_history_status
+29860,2003-01-21T03:34:00+00:00,Text,3,335,14,4.18,10,2.99,311,92.84,0,10,0,0,10,311,dev_0039,True,0,no_assignment_history
+29860,2003-01-21T03:34:00+00:00,Text,5,335,9,2.69,15,4.48,311,92.84,1,14,0,1,14,311,dev_0039,True,0,no_assignment_history
+29860,2003-01-21T03:34:00+00:00,Text,10,335,4,1.19,20,5.97,311,92.84,3,17,0,3,17,311,dev_0039,True,0,no_assignment_history
+97323,2005-05-30T17:23:22+00:00,Text,3,335,39,11.64,19,5.67,277,82.69,6,13,0,6,13,277,dev_0070,True,26,sufficient_history
+97323,2005-05-30T17:23:22+00:00,Text,5,335,29,8.66,29,8.66,277,82.69,9,20,0,9,20,277,dev_0070,True,26,sufficient_history
+97323,2005-05-30T17:23:22+00:00,Text,10,335,15,4.48,43,12.84,277,82.69,14,29,0,14,29,277,dev_0070,True,26,sufficient_history
+259247,2008-12-18T13:00:56+00:00,UI,3,335,46,13.73,25,7.46,264,78.81,10,15,0,10,15,264,dev_0182,True,0,no_assignment_history
+259247,2008-12-18T13:00:56+00:00,UI,5,335,34,10.15,37,11.04,264,78.81,15,22,0,15,22,264,dev_0182,True,0,no_assignment_history
+259247,2008-12-18T13:00:56+00:00,UI,10,335,21,6.27,50,14.93,264,78.81,20,30,0,20,30,264,dev_0182,True,0,no_assignment_history
+578388,2022-01-26T10:11:49+00:00,UI,3,335,68,20.3,61,18.21,206,61.49,26,35,0,26,35,206,dev_0175,True,7,sufficient_history
+578388,2022-01-26T10:11:49+00:00,UI,5,335,49,14.63,80,23.88,206,61.49,36,44,0,36,44,206,dev_0175,True,7,sufficient_history
+578388,2022-01-26T10:11:49+00:00,UI,10,335,30,8.96,99,29.55,206,61.49,45,54,0,45,54,206,dev_0175,True,7,limited_history

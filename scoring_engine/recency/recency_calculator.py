@@ -153,7 +153,7 @@ def get_developer_recency(
         activity_timestamp = parse_timestamp(activity)
 
         # Include only activities at or before prediction time.
-        if activity_timestamp <= reference_timestamp:
+        if activity_timestamp < reference_timestamp:
             valid_timestamps.append(activity_timestamp)
 
     # Handle developers without historical activity.
@@ -238,7 +238,7 @@ def get_all_developer_recency(
         )
 
         # Exclude future assignment events.
-        if activity_timestamp > reference_timestamp:
+        if activity_timestamp >= reference_timestamp:
             continue
 
         # Store the latest eligible historical assignment.

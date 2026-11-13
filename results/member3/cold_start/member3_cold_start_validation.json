@@ -1,0 +1,309 @@
+{
+    "status": "completed",
+    "dataset": "jdt_known_entry_preprocessed.csv",
+    "historical_evidence_policy": "Only known_entry assignment records; assignment_time; strictly before prediction timestamp; target bug excluded.",
+    "profile_file_use": "Developer identities only. Profile assignment counts and provisional activity were not used as historical evidence.",
+    "verified_assignment_event_count": 1651,
+    "skipped_records": 0,
+    "fixed_roster_size": 335,
+    "unique_roster_ids": 335,
+    "profile_rows_with_zero_known_entry_bugs": 204,
+    "target_bug_ids": [
+        "29860",
+        "97323",
+        "259247",
+        "578388"
+    ],
+    "thresholds_evaluated": [
+        3,
+        5,
+        10
+    ],
+    "candidate_evaluation_rows": 4020,
+    "expected_candidate_evaluation_rows": 4020,
+    "roster_limitation": "The full 335-developer profile roster is fixed across all historical prediction points. Developers first observed after a prediction point may be classified as having no verified history. These are retrospective evidence diagnostics, not proof that all roster members were historically eligible.",
+    "results": [
+        {
+            "target_bug_id": "29860",
+            "prediction_timestamp_utc": "2003-01-21T03:34:00+00:00",
+            "target_component": "Text",
+            "threshold": 3,
+            "classification_counts": {
+                "sufficient_history": 14,
+                "limited_history": 10,
+                "no_assignment_history": 311
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 0,
+                "no_component_match": 10,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 0,
+            "limited_additional_evidence_required": 10,
+            "no_history_external_evidence_required": 311,
+            "actual_assignee": "dev_0039",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "no_assignment_history",
+            "actual_assignee_history_count": 0
+        },
+        {
+            "target_bug_id": "29860",
+            "prediction_timestamp_utc": "2003-01-21T03:34:00+00:00",
+            "target_component": "Text",
+            "threshold": 5,
+            "classification_counts": {
+                "sufficient_history": 9,
+                "limited_history": 15,
+                "no_assignment_history": 311
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 1,
+                "no_component_match": 14,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 1,
+            "limited_additional_evidence_required": 14,
+            "no_history_external_evidence_required": 311,
+            "actual_assignee": "dev_0039",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "no_assignment_history",
+            "actual_assignee_history_count": 0
+        },
+        {
+            "target_bug_id": "29860",
+            "prediction_timestamp_utc": "2003-01-21T03:34:00+00:00",
+            "target_component": "Text",
+            "threshold": 10,
+            "classification_counts": {
+                "sufficient_history": 4,
+                "limited_history": 20,
+                "no_assignment_history": 311
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 3,
+                "no_component_match": 17,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 3,
+            "limited_additional_evidence_required": 17,
+            "no_history_external_evidence_required": 311,
+            "actual_assignee": "dev_0039",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "no_assignment_history",
+            "actual_assignee_history_count": 0
+        },
+        {
+            "target_bug_id": "97323",
+            "prediction_timestamp_utc": "2005-05-30T17:23:22+00:00",
+            "target_component": "Text",
+            "threshold": 3,
+            "classification_counts": {
+                "sufficient_history": 39,
+                "limited_history": 19,
+                "no_assignment_history": 277
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 6,
+                "no_component_match": 13,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 6,
+            "limited_additional_evidence_required": 13,
+            "no_history_external_evidence_required": 277,
+            "actual_assignee": "dev_0070",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "sufficient_history",
+            "actual_assignee_history_count": 26
+        },
+        {
+            "target_bug_id": "97323",
+            "prediction_timestamp_utc": "2005-05-30T17:23:22+00:00",
+            "target_component": "Text",
+            "threshold": 5,
+            "classification_counts": {
+                "sufficient_history": 29,
+                "limited_history": 29,
+                "no_assignment_history": 277
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 9,
+                "no_component_match": 20,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 9,
+            "limited_additional_evidence_required": 20,
+            "no_history_external_evidence_required": 277,
+            "actual_assignee": "dev_0070",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "sufficient_history",
+            "actual_assignee_history_count": 26
+        },
+        {
+            "target_bug_id": "97323",
+            "prediction_timestamp_utc": "2005-05-30T17:23:22+00:00",
+            "target_component": "Text",
+            "threshold": 10,
+            "classification_counts": {
+                "sufficient_history": 15,
+                "limited_history": 43,
+                "no_assignment_history": 277
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 14,
+                "no_component_match": 29,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 14,
+            "limited_additional_evidence_required": 29,
+            "no_history_external_evidence_required": 277,
+            "actual_assignee": "dev_0070",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "sufficient_history",
+            "actual_assignee_history_count": 26
+        },
+        {
+            "target_bug_id": "259247",
+            "prediction_timestamp_utc": "2008-12-18T13:00:56+00:00",
+            "target_component": "UI",
+            "threshold": 3,
+            "classification_counts": {
+                "sufficient_history": 46,
+                "limited_history": 25,
+                "no_assignment_history": 264
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 10,
+                "no_component_match": 15,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 10,
+            "limited_additional_evidence_required": 15,
+            "no_history_external_evidence_required": 264,
+            "actual_assignee": "dev_0182",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "no_assignment_history",
+            "actual_assignee_history_count": 0
+        },
+        {
+            "target_bug_id": "259247",
+            "prediction_timestamp_utc": "2008-12-18T13:00:56+00:00",
+            "target_component": "UI",
+            "threshold": 5,
+            "classification_counts": {
+                "sufficient_history": 34,
+                "limited_history": 37,
+                "no_assignment_history": 264
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 15,
+                "no_component_match": 22,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 15,
+            "limited_additional_evidence_required": 22,
+            "no_history_external_evidence_required": 264,
+            "actual_assignee": "dev_0182",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "no_assignment_history",
+            "actual_assignee_history_count": 0
+        },
+        {
+            "target_bug_id": "259247",
+            "prediction_timestamp_utc": "2008-12-18T13:00:56+00:00",
+            "target_component": "UI",
+            "threshold": 10,
+            "classification_counts": {
+                "sufficient_history": 21,
+                "limited_history": 50,
+                "no_assignment_history": 264
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 20,
+                "no_component_match": 30,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 20,
+            "limited_additional_evidence_required": 30,
+            "no_history_external_evidence_required": 264,
+            "actual_assignee": "dev_0182",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "no_assignment_history",
+            "actual_assignee_history_count": 0
+        },
+        {
+            "target_bug_id": "578388",
+            "prediction_timestamp_utc": "2022-01-26T10:11:49+00:00",
+            "target_component": "UI",
+            "threshold": 3,
+            "classification_counts": {
+                "sufficient_history": 68,
+                "limited_history": 61,
+                "no_assignment_history": 206
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 26,
+                "no_component_match": 35,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 26,
+            "limited_additional_evidence_required": 35,
+            "no_history_external_evidence_required": 206,
+            "actual_assignee": "dev_0175",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "sufficient_history",
+            "actual_assignee_history_count": 7
+        },
+        {
+            "target_bug_id": "578388",
+            "prediction_timestamp_utc": "2022-01-26T10:11:49+00:00",
+            "target_component": "UI",
+            "threshold": 5,
+            "classification_counts": {
+                "sufficient_history": 49,
+                "limited_history": 80,
+                "no_assignment_history": 206
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 36,
+                "no_component_match": 44,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 36,
+            "limited_additional_evidence_required": 44,
+            "no_history_external_evidence_required": 206,
+            "actual_assignee": "dev_0175",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "sufficient_history",
+            "actual_assignee_history_count": 7
+        },
+        {
+            "target_bug_id": "578388",
+            "prediction_timestamp_utc": "2022-01-26T10:11:49+00:00",
+            "target_component": "UI",
+            "threshold": 10,
+            "classification_counts": {
+                "sufficient_history": 30,
+                "limited_history": 99,
+                "no_assignment_history": 206
+            },
+            "component_evidence_counts_for_limited_history": {
+                "component_match_found": 45,
+                "no_component_match": 54,
+                "component_data_unavailable": 0
+            },
+            "limited_component_supported": 45,
+            "limited_additional_evidence_required": 54,
+            "no_history_external_evidence_required": 206,
+            "actual_assignee": "dev_0175",
+            "actual_assignee_in_fixed_roster": true,
+            "actual_assignee_history_status": "limited_history",
+            "actual_assignee_history_count": 7
+        }
+    ],
+    "interpretation_limitations": [
+        "Component match is evidence of prior assignment to the target component, not proof of developer expertise.",
+        "A single component match is not equivalent to strong expertise.",
+        "No-history developers require external evidence; this evaluation does not provide that evidence.",
+        "The evaluation measures historical assignment evidence, not recommendation accuracy."
+    ]
+}

@@ -74,7 +74,7 @@ def classify_developer_history(
         )
 
         # Exclude future assignment events.
-        if event_time > prediction_time:
+        if event_time >= prediction_time:
             continue
 
         # Count valid historical assignments.
@@ -195,7 +195,7 @@ def evaluate_limited_history_component_evidence(
         )
 
         # Prevent future information from being used.
-        if event_time > prediction_time:
+        if event_time >= prediction_time:
             continue
 
         component = event.get("component", "")

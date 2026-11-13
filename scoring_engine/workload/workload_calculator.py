@@ -80,7 +80,7 @@ def calculate_developer_workload(
         )
 
         # Count only historical assignments within the window.
-        if window_start <= event_timestamp <= reference_timestamp:
+        if window_start <= event_timestamp < reference_timestamp:
             workload_counts[developer] += 1
 
     # Identify eligible developers.
