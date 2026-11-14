@@ -16,16 +16,24 @@ Assigning a bug to the right developer can require time-consuming manual review 
 - Present recommendations with interpretable supporting factors.
 - Provide a modular backend, frontend, and database foundation for later integration.
 
-## Planned Main Features
+## Current Implementation Status
 
-The following are project goals; they are not implemented yet:
+The project has substantial JDT data preparation and validated Git history for
+JDT, Eclipse Platform, SWT, UI, and PDE. Reusable research utilities now cover
+evidence-aware cold-start assessment, fixed/adaptive feature scoring,
+confidence calibration interfaces, score explanations, Top-K ranking and
+metrics, point-in-time TF-IDF retrieval, assignment-event workload snapshots,
+and a strict-cutoff recency-decay transformation.
 
-- Bug report preprocessing and feature preparation.
-- Similar bug retrieval.
-- Developer profile and expertise modeling.
-- Recency-aware, workload-aware candidate scoring.
-- Confidence information and explainable assignment recommendations.
-- API and user interface for reviewing recommendations.
+These are tested building blocks, not an integrated application or trained
+bug-assignment model. No recommendation performance, calibrated probability,
+or feature improvement is claimed. Platform/PDE Bugzilla assignment data is
+not available in the local inventory, and Git commits are not assignment or
+workload labels.
+
+See [the architecture overview](docs/architecture/remaining_work_architecture.md),
+[the data contracts](docs/methodology/data_contracts_and_features.md), and
+[the evaluation protocol](docs/methodology/evaluation_protocol.md).
 
 ## Technology Stack
 
@@ -41,22 +49,28 @@ The following are project goals; they are not implemented yet:
 
 | Member | Responsibility | Folders |
 | --- | --- | --- |
-| Member 1 | Data, research, and NLP | `data/`, `research/`, `preprocessing/`, `bug_similarity/` |
+| Member 1 | Data, research, and NLP | `dataset/`, `research/`, `preprocessing/`, `bug_similarity/` |
 | Member 2 | Machine learning and developer expertise | `ml_model/` |
 | Member 3 | Intelligent assignment and scoring | `scoring_engine/` |
 | Member 4 | Full-stack application and integration | `backend/`, `frontend/`, `database/` |
 | All members | Documentation and testing | `docs/`, `tests/` |
 
+This table describes broad project folder ownership. Dataset-specific
+responsibilities, inputs, limitations, and deliverables are assigned separately
+in the [four-member dataset handover matrix](research/dataset_handover/TEAM_HANDOVER_MATRIX.md);
+the two tables serve different purposes and are not intended to be a
+one-to-one mapping.
+
 ## Project Folder Structure
 
 ```text
 .
-+-- data/                    # Raw, processed, and external data
++-- dataset/                 # Raw, processed, sample, and external data
 +-- research/                # Literature review and dataset documentation
 +-- preprocessing/           # Data cleaning and feature preparation
-+-- bug_similarity/          # Similarity modeling and retrieval
-+-- ml_model/                # Profiles, features, training, evaluation, ranking
-+-- scoring_engine/          # Recency, workload, cold-start, confidence, scoring
++-- bug_similarity/          # Point-in-time TF-IDF retrieval utilities
++-- ml_model/                # Feature selection and Top-K ranking utilities
++-- scoring_engine/          # Recency, workload, cold-start, confidence, explanations
 +-- backend/                 # API, services, and backend models
 +-- frontend/                # Public assets and application source
 +-- database/                # Schemas and migrations
@@ -72,19 +86,19 @@ The following are project goals; they are not implemented yet:
 Use Python 3.10 or newer. From the repository root, create and activate a virtual environment, then install the listed dependencies:
 
 ```bash
-python -m venv .venv
+python -m venv .venv-sbert
 ```
 
 On Windows:
 
 ```powershell
-.venv\Scripts\Activate.ps1
+.venv-sbert\Scripts\Activate.ps1
 ```
 
 On macOS or Linux:
 
 ```bash
-source .venv/bin/activate
+source .venv-sbert/bin/activate
 ```
 
 Install dependencies:
@@ -95,15 +109,20 @@ python -m pip install -r requirements.txt
 
 Dependencies are listed for setup; they are not installed automatically by this project structure.
 
-## How to Run
+In VS Code, select the `.venv-sbert` environment as the Python interpreter
+(Windows: `.venv-sbert\Scripts\python.exe`; macOS/Linux:
+`.venv-sbert/bin/python`). Use that same environment when running the unit
+tests so editor diagnostics and test imports resolve the same dependencies.
 
-Application and model implementation steps are **upcoming**. There is not yet an application entry point or a trained model to run.
+## Validation
 
-After implementation, the intended workflow is:
+Run the reusable-module unit tests from the project root:
 
-1. Place approved source data in `data/raw/` (large raw files are excluded from Git).
-2. Implement preprocessing, similarity retrieval, model training, and scoring modules.
-3. Add backend and frontend entry points and document their run commands here.
-4. Run the test suite with `pytest` once tests have been added.
+```powershell
+python -m unittest discover -s tests\unit -p "test_*.py" -v
+```
 
-Until those implementation steps are complete, there is no project application command to launch.
+There is not yet an application entry point or a trained model to launch.
+Integrating these utilities into an evaluated recommender and API/UI remains
+future work. See the [remaining-work completion report](research/dataset_documentation/remaining_work_completion_report.md)
+for the current feature status and deferred JDT/Bugzilla phase.
